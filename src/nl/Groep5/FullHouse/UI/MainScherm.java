@@ -87,6 +87,8 @@ public class MainScherm {
     private JButton btnBekendeUitvoeren;
     private JComboBox cbBekende;
     private JTextField txtBekendeSpelerNaam;
+    private JButton btnSpelerUitloggen;
+    private JButton btnToernooiUitloggen;
 
 
     public MainScherm() {
@@ -325,6 +327,13 @@ public class MainScherm {
                 spelerTabel.setModel(bouwSpelerTabel());
             }
         });
+        btnSpelerUitloggen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+                new InlogScherm();
+            }
+        });
 
         /*
          TOERNOOI DEEL
@@ -534,6 +543,13 @@ public class MainScherm {
                 toernooiTabel.setModel(bouwToernooienTabel());
             }
         });
+        btnToernooiUitloggen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+                new InlogScherm();
+            }
+        });
 
         /*
         *MASTERCLASS DEEL
@@ -576,6 +592,60 @@ public class MainScherm {
                     txtBekendeSpelerNaam.setText(geselecteerdeBekendeSpeler.getPseudonaam());
                 }catch(SQLException q){
                     q.printStackTrace();
+                }
+            }
+        });
+        btnBekendeUitvoeren.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (bekendeTabel.getSelectedRow() == -1) {
+                    JOptionPane.showMessageDialog(frame, "U moet eerst een selectie maken voordat u een bewerking kunt doen.", "Waarschuwing", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    try {
+                        int selectedIndex = (int) bekendeTabel.getValueAt(bekendeTabel.getSelectedRow(), 0);
+                        BekendeSpeler geselecteerdeBekendeSpeler = DatabaseHelper.verkrijgBekendeSpelerBijId(selectedIndex);
+                        boolean validated = true;
+                        switch (String.valueOf(cbBekende.getItemAt(cbBekende.getSelectedIndex()))) {
+                            case "Bewerken":
+                                try{
+                                    geselecteerdeBekendeSpeler.setPseudonaam(txtBekendeSpelerNaam.getText());
+                                }catch(Exception error){
+                                    validated = false;
+                                    JOptionPane.showMessageDialog(frame, error.getMessage(),"Fout", JOptionPane.ERROR_MESSAGE);
+                                }
+                                if(validated && geselecteerdeBekendeSpeler.Update()) {
+                                    JOptionPane.showMessageDialog(frame, "Gebruiker succesvol bewerkt.","Bericht", JOptionPane.INFORMATION_MESSAGE);
+                                }else{
+                                    JOptionPane.showMessageDialog(frame, "Database error! Neem contact op met een beheerder.","Fatal", JOptionPane.ERROR_MESSAGE);
+                                }
+                                break;
+                            case "Aanmaken":
+                                try{
+                                    geselecteerdeBekendeSpeler.setPseudonaam(txtBekendeSpelerNaam.getText());
+                                }catch(Exception error){
+                                    validated = false;
+                                    JOptionPane.showMessageDialog(frame, error.getMessage(),"Fout", JOptionPane.ERROR_MESSAGE);
+                                }
+                                if(validated && geselecteerdeBekendeSpeler.Save()) {
+                                    JOptionPane.showMessageDialog(frame, "Gebruiker succesvol aangemaakt.","Bericht", JOptionPane.INFORMATION_MESSAGE);
+                                }else{
+                                    JOptionPane.showMessageDialog(frame, "Database error! Neem contact op met een beheerder.","Fatal", JOptionPane.ERROR_MESSAGE);
+                                }
+                                break;
+                            case "Verwijderen":
+                                if(geselecteerdeBekendeSpeler.Delete()) {
+                                    JOptionPane.showMessageDialog(frame, "Gebruiker succesvol verwijdert.","Bericht", JOptionPane.INFORMATION_MESSAGE);
+                                }else{
+                                    JOptionPane.showMessageDialog(frame, "Database error! Neem contact op met een beheerder.","Fatal", JOptionPane.ERROR_MESSAGE);
+                                }
+                                break;
+                        }
+                    } catch (SQLException uitvoerFout) {
+                        uitvoerFout.printStackTrace();
+                    }
+                    int selectedRow = bekendeTabel.getSelectedRow();
+                    bekendeTabel.setModel(bouwBekendeSpelerTabel());
+                    bekendeTabel.setRowSelectionInterval(selectedRow, selectedRow);
                 }
             }
         });
