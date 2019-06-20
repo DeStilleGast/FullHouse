@@ -38,9 +38,9 @@ public class DatabaseHelper {
             ps = mysql.prepareStatement("select * from speler");
         } else {
             ps = mysql.prepareStatement("select * from speler where voornaam like ? or tussenvoegsel like ? or achternaam like ? or id = ?");
-            ps.setString(1, filter);
+            ps.setString(1, "%" + filter + "%");
             ps.setString(2, filter);
-            ps.setString(3, filter);
+            ps.setString(3, "%" + filter + "%");
             ps.setString(4, filter);
         }
         ResultSet rs = mysql.query(ps);
@@ -58,8 +58,29 @@ public class DatabaseHelper {
         MySQLConnector mysql = Main.getMySQLConnection();
         PreparedStatement ps;
 
-            ps = mysql.prepareStatement("select * from bekende_speler");
+        ps = mysql.prepareStatement("select * from bekende_speler");
 
+        ResultSet rs = mysql.query(ps);
+
+        List<BekendeSpeler> bekendeSpelers = new ArrayList<>();
+
+        while (rs.next()) {
+            bekendeSpelers.add(new BekendeSpeler(rs));
+        }
+
+        return bekendeSpelers;
+    }
+
+    public static List<BekendeSpeler> verkrijgBekendeSpelers(String filter) throws SQLException {
+        MySQLConnector mysql = Main.getMySQLConnection();
+        PreparedStatement ps;
+        if (filter == null || filter.isEmpty()) {
+            ps = mysql.prepareStatement("select * from bekende_speler");
+        }else{
+            ps = mysql.prepareStatement("select * from bekende_speler where pseudonaam like ? or id = ?");
+            ps.setString(1, "%" + filter + "%");
+            ps.setString(2, filter);
+        }
         ResultSet rs = mysql.query(ps);
 
         List<BekendeSpeler> bekendeSpelers = new ArrayList<>();
@@ -118,6 +139,41 @@ public class DatabaseHelper {
         }
 
         return locaties;
+    }
+
+    /**
+     * Verkrijg lijst met MasterClassen
+     *
+     * @param filter Filter bij het verkrijgen van masterclasses
+     * @return Lijst met MasterClass objecten
+     * @throws SQLException
+     */
+    public static List<MasterClass> verkrijgMasterClasses(String filter) throws SQLException {
+        MySQLConnector mysql = Main.getMySQLConnection();
+        PreparedStatement ps;
+        if (filter == null || filter.isEmpty()) {
+            ps = mysql.prepareStatement("select * from masterclass");
+        }else{
+            ps = mysql.prepareStatement("select * from masterclass where datum like ? or beginTijd like ? or eindTijd like ? or kosten like ? or minRating like ? or maxInschrijvingen like ? or locatieID = ? or leraar like ? or ID = ?");
+            ps.setString(1, "%" + filter + "%");
+            ps.setString(2, filter);
+            ps.setString(3, filter);
+            ps.setString(4, filter);
+            ps.setString(5, filter);
+            ps.setString(6, filter);
+            ps.setString(7, filter);
+            ps.setString(8, filter);
+            ps.setString(9, filter);
+        }
+        ResultSet rs = mysql.query(ps);
+
+        List<MasterClass> masterClasses = new ArrayList<>();
+
+        while (rs.next()) {
+            masterClasses.add(new MasterClass(rs));
+        }
+
+        return masterClasses;
     }
 
     /**
@@ -234,15 +290,15 @@ public class DatabaseHelper {
     public static List<Toernooi> verkrijgToernooien(String filter) throws SQLException {
         MySQLConnector mysql = Main.getMySQLConnection();
         PreparedStatement ps;
-        if(filter == null || filter.isEmpty()){
+        if (filter == null || filter.isEmpty()) {
             ps = mysql.prepareStatement("select * from toernooi");
         } else {
             ps = mysql.prepareStatement("select * from toernooi where naam like ? or datum like ? or beginTijd like ? or eindTijd like ? or ID = ?");
-            ps.setString(1,filter);
-            ps.setString(2,filter);
-            ps.setString(3,filter);
-            ps.setString(4,filter);
-            ps.setString(5,filter);
+            ps.setString(1, "%" + filter + "%");
+            ps.setString(2, "%" + filter + "%");
+            ps.setString(3, filter);
+            ps.setString(4, filter);
+            ps.setString(5, filter);
         }
         ResultSet rs = mysql.query(ps);
 
@@ -344,6 +400,7 @@ public class DatabaseHelper {
 
     /**
      * Verkrijg een lijst met uitkomsten van toernooi
+     *
      * @param toernooi
      * @return Lijst met uitkomsten
      * @throws SQLException
@@ -366,7 +423,22 @@ public class DatabaseHelper {
     }
 
     /**
+     * Delete uitkomsten uit de database per ID
+     *
+     * @param ID
+     * @throws SQLException
+     */
+    public static void verwijderToernooiUitkomstByToernooiID(int ID) throws SQLException{
+        MySQLConnector mysql = Main.getMySQLConnection();
+        PreparedStatement ps = mysql.prepareStatement("delete from toernooi_uitkomsten where toernooiID = ?");
+        ps.setInt(1, ID);
+        mysql.update(ps);
+    }
+
+
+    /**
      * Verkrijg een lijst met uitkomsten van Speler
+     *
      * @param speler
      * @return Lijst met uitkomsten
      * @throws SQLException
@@ -453,21 +525,18 @@ public class DatabaseHelper {
         return inschrijvingen;
     }
 
-//    private static <T> List<T> verkrijgLijstVanObjecten(String table, String idName, int idValue){
-//        MySQLConnector mysql = Main.getMySQLConnection();
-//        PreparedStatement ps = mysql.prepareStatement("select * from ? where ? = ?");
-//        ps.setString(1, table);
-//        ps.setString(2, idName);
-//        ps.setInt(3, idValue);
-//
-//        ResultSet rs = mysql.query(ps);
-//
-//        List<T> inschrijvingen = new ArrayList<>();
-//
-//        while (rs.next()) {
-//            inschrijvingen.add(new T(rs));
-//        }
-//
-//        return inschrijvingen;
-//    }
+    public static List<ToernooiTafelIndeling> verkrijgTafelIndelingVanToernooi(Toernooi toernooi) throws SQLException {
+        MySQLConnector mysql = Main.getMySQLConnection();
+        PreparedStatement ps = mysql.prepareStatement("select * from toernooi_tafelindeling where toernooiID = ?");
+        ps.setInt(1, toernooi.getID());
+
+        ResultSet rs = mysql.query(ps);
+
+        List<ToernooiTafelIndeling> indelingList = new ArrayList<>();
+
+        while (rs.next()) {
+            indelingList.add(new ToernooiTafelIndeling(rs));
+        }
+        return indelingList;
+    }
 }
